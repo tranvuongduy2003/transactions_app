@@ -4,6 +4,7 @@ import 'package:shopping_app/widgets/new_transaction.dart';
 import './widgets/new_transaction.dart';
 import './widgets/transaction_list.dart';
 import './models/transaction.dart';
+import './widgets/chart.dart';
 
 void main() {
   return runApp(MyApp());
@@ -21,10 +22,13 @@ class MyApp extends StatelessWidget {
               seedColor: Colors.purple, secondary: Colors.amber),
           fontFamily: 'Quicksand',
           textTheme: ThemeData.light().textTheme.copyWith(
-                  titleLarge: TextStyle(
+              titleLarge: TextStyle(
                 fontFamily: 'Open Sans',
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
+              ),
+              labelLarge: TextStyle(
+                color: Colors.white,
               )),
           appBarTheme: AppBarTheme(
             titleTextStyle: TextStyle(
@@ -52,6 +56,13 @@ class _MyHomePageState extends State<MyHomePage> {
     //     amount: 16.53,
     //     date: DateTime.now()),
   ];
+
+  List<Transaction> get _recentTransactions {
+    return _userTransactions.where((transaction) {
+      return transaction.date
+          .isAfter(DateTime.now().subtract(Duration(days: 7)));
+    }).toList();
+  }
 
   void _addNewTransaction(String transactionTitle, double transactionAmount) {
     final newTransaction = Transaction(
@@ -94,14 +105,7 @@ class _MyHomePageState extends State<MyHomePage> {
           // mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            Container(
-              width: double.infinity,
-              child: const Card(
-                color: Colors.blue,
-                elevation: 5,
-                child: Text('CHART!'),
-              ),
-            ),
+            Chart(_userTransactions),
             TransactionList(_userTransactions),
           ],
         ),
