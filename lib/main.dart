@@ -57,6 +57,8 @@ class _MyHomePageState extends State<MyHomePage> {
     //     date: DateTime.now()),
   ];
 
+  bool _showChart = false;
+
   List<Transaction> get _recentTransactions {
     return _userTransactions.where((transaction) {
       return transaction.date
@@ -64,15 +66,22 @@ class _MyHomePageState extends State<MyHomePage> {
     }).toList();
   }
 
-  void _addNewTransaction(String transactionTitle, double transactionAmount) {
+  void _addNewTransaction(String transactionTitle, double transactionAmount,
+      DateTime transactionDate) {
     final newTransaction = Transaction(
         id: DateTime.now().toString(),
         title: transactionTitle,
         amount: transactionAmount,
-        date: DateTime.now());
+        date: transactionDate);
 
     setState(() {
       _userTransactions.add(newTransaction);
+    });
+  }
+
+  void _deleteTransaction(String id) {
+    setState(() {
+      _userTransactions.removeWhere((transaction) => transaction.id == id);
     });
   }
 
@@ -91,22 +100,66 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
+
+    final appBar = AppBar(
+      title: const Text('Flutter App'),
+      actions: [
+        IconButton(
+            onPressed: () => _startAddNewTransaction(context),
+            icon: const Icon(Icons.add))
+      ],
+    );
+
+    final transactionsListWidget = Container(
+      height: (MediaQuery.of(context).size.height -
+              appBar.preferredSize.height -
+              MediaQuery.of(context).padding.top) *
+          0.6,
+      child: TransactionList(_userTransactions, _deleteTransaction),
+    );
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Flutter App'),
-        actions: [
-          IconButton(
-              onPressed: () => _startAddNewTransaction(context),
-              icon: const Icon(Icons.add))
-        ],
-      ),
+      appBar: appBar,
       body: SingleChildScrollView(
         child: Column(
           // mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            Chart(_userTransactions),
-            TransactionList(_userTransactions),
+            if (isLandscape)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Text("Show Chart"),
+                  Switch(
+                      value: _showChart,
+                      onChanged: (val) {
+                        setState(() {
+                          _showChart = val;
+                        });
+                      })
+                ],
+              ),
+            if (!isLandscape)
+              Container(
+                height: (MediaQuery.of(context).size.height -
+                        appBar.preferredSize.height -
+                        MediaQuery.of(context).padding.top) *
+                    0.3,
+                child: Chart(_userTransactions),
+              ),
+            if (!isLandscape) transactionsListWidget,
+            if (isLandscape)
+              _showChart
+                  ? Container(
+                      height: (MediaQuery.of(context).size.height -
+                              appBar.preferredSize.height -
+                              MediaQuery.of(context).padding.top) *
+                          0.7,
+                      child: Chart(_userTransactions),
+                    )
+                  : transactionsListWidget
           ],
         ),
       ),
